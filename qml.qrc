@@ -1,0 +1,20 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/main.qml</file>
+        <file>assets/fonts/fontawesome.otf</file>
+        <file>qml/components/AppIcon.qml</file>
+        <file>qml/views/LoginView.qml</file>
+        <file>qml/views/CreateNewAccountView.qml</file>
+        <file>qml/views/ActivityView.qml</file>
+        <file>qml/views/SplashView.qml</file>
+        <file>qml/components/Spacer.qml</file>
+        <file>qml/components/TextBoxInput.qml</file>
+        <file>qml/components/NavigationBarItem.qml</file>
+        <file>qml/components/TodaysTaskPane.qml</file>
+        <file>qml/components/NewTaskPane.qml</file>
+        <file>qml/components/ToDoPane.qml</file>
+        <file>qml/components/TodoPanelWidget.qml</file>
+        <file>qml/components/RoundProgressBar.qml</file>
+        <file>qml/components/TaskModel.qml</file>
+    </qresource>
+</RCC>
