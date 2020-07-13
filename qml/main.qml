@@ -39,7 +39,7 @@ Window {
 
     Timer
     {
-        running: false
+        running: true
         interval: 5500
         repeat: false
 
@@ -49,7 +49,7 @@ Window {
     StackLayout
     {
         id: mainAppStackLayout
-        currentIndex: 1
+        currentIndex: 0
         anchors.fill: parent
 
         SplashView{}

@@ -16,5 +16,7 @@
         <file>qml/components/TodoPanelWidget.qml</file>
         <file>qml/components/RoundProgressBar.qml</file>
         <file>qml/components/TaskModel.qml</file>
+        <file>assets/images/icon-48.png</file>
+        <file>assets/images/icon-96.png</file>
     </qresource>
 </RCC>
