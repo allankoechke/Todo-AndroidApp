@@ -18,5 +18,11 @@
         <file>qml/components/TaskModel.qml</file>
         <file>assets/images/icon-48.png</file>
         <file>assets/images/icon-96.png</file>
+        <file>qml/components/TextInputWithTag.qml</file>
+        <file>qml/components/ComboBoxWithATag.qml</file>
+        <file>qml/components/TimePickerPopup.qml</file>
+        <file>qml/components/TextAndATag.qml</file>
+        <file>qml/components/DateTimePickerDialog.qml</file>
+        <file>qml/components/MenuButton.qml</file>
     </qresource>
 </RCC>

@@ -3,15 +3,19 @@ import QtQuick.Layouts 1.3
 
 Item {
     id: root
-    Layout.fillWidth: true
-    Layout.preferredHeight: tasktextcontent.height+70
+    width: parent.width
+    height: tasktextcontent.height+70
 
-    property string taskcategorycolor: taskcategorycolor
     property string taskstarttime: taskstarttime
-    property string taskcategory: taskcategory
+    property int taskcategory: taskcategory
     property string taskendtime: taskendtime
     property string tasktitle: tasktitle
     property string tasktext: tasktext
+    property int currentId: currentId
+    property int taskStatus: 0
+    property var taskCategoryArray: ["Work", "Personal", "Health", "Others"]
+
+    property alias mouseArea: mouseArea
 
     signal clicked()
 
@@ -35,6 +39,14 @@ Item {
                 border.width: 2
                 border.color: "grey"
                 anchors.top: parent.top
+
+                AppIcon
+                {
+                    anchors.centerIn: parent
+                    size: 14
+                    color: taskcategory===0? Qt.rgba(252/255,126/255,27/255,1):taskcategory===1? Qt.rgba(144/255,92/255,217/255,1):taskcategory===2? Qt.rgba(18/255,119/255,235/255,1):Qt.rgba(0/255,128/255,128/255,1)
+                    icon: taskStatus===0? "\uf110": taskStatus===1? "\uf00c":"\uf723"
+                }
             }
 
             Column
@@ -45,7 +57,7 @@ Item {
 
                 Repeater
                 {
-                    model: 30
+                    model: 300
                     Rectangle
                     {
                         width: 1; height: 2; color: "grey"; opacity: 0.7
@@ -74,7 +86,7 @@ Item {
             Rectangle
             {
                 id: colorlabel
-                color: taskcategorycolor
+                color: taskcategory===0? Qt.rgba(252/255,126/255,27/255,1):taskcategory===1? Qt.rgba(144/255,92/255,217/255,1):taskcategory===2? Qt.rgba(18/255,119/255,235/255,1):Qt.rgba(0/255,128/255,128/255,1)
                 width: 20
                 height: parent.height
                 radius: 5
@@ -85,7 +97,7 @@ Item {
             Rectangle
             {
                 color: "white"
-                width: parent.width-5; height: parent.height
+                width: parent.width-5; height: tasktextcontent.height+70 //parent.height
                 anchors.left: parent.left; anchors.leftMargin: 5
                 anchors.verticalCenter: parent.verticalCenter
 
@@ -102,17 +114,23 @@ Item {
                         Text
                         {
                             font.pixelSize: 14
-                            color: taskcategorycolor
+                            color: taskcategory===0? Qt.rgba(252/255,126/255,27/255,1):taskcategory===1? Qt.rgba(144/255,92/255,217/255,1):taskcategory===2? Qt.rgba(18/255,119/255,235/255,1):Qt.rgba(0/255,128/255,128/255,1)
                             text: tasktitle
                         }
 
-                        AppIcon
-                        {
-                            color: "#555555"
-                            size: 14
-                            icon: "\uf057"
+                        Item{
+                            width: 20; height: 25
                             anchors.right: parent.right
                             anchors.top: parent.top
+
+                            AppIcon
+                            {
+                                id: mouseArea
+                                color: taskcategory===0? Qt.rgba(252/255,126/255,27/255,1):taskcategory===1? Qt.rgba(144/255,92/255,217/255,1):taskcategory===2? Qt.rgba(18/255,119/255,235/255,1):Qt.rgba(0/255,128/255,128/255,1)
+                                size: 14
+                                icon: "\uf142"
+                                anchors.centerIn: parent
+                            }
 
                             MouseArea
                             {
@@ -147,8 +165,8 @@ Item {
                                 color: "grey"
                                 text: tasktext
                                 wrapMode: Text.WordWrap
-                                Layout.minimumHeight: 50
-                                Layout.maximumHeight: 400
+                                Layout.minimumHeight: 20
+                                Layout.maximumHeight: 1000
                                 Layout.fillWidth: true
                             }
 
@@ -172,13 +190,18 @@ Item {
                                     {
                                         font.pixelSize: 10
                                         color: "#535353"
-                                        text: taskcategory
+                                        text: taskCategoryArray[taskcategory]
                                         Layout.alignment: Qt.AlignVCenter
                                     }
 
                                     Spacer
                                     {
                                         orientation: "horizontal"
+                                    }
+
+                                    Text{
+                                        text: currentId.toString()
+                                        color: "transparent"
                                     }
                                 }
                             }

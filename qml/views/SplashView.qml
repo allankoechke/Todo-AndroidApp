@@ -43,22 +43,12 @@ Item
                 Layout.alignment: Qt.AlignHCenter|Qt.AlignTop
                 width: 100; height: 100
 
-                AppIcon
+                Image
                 {
-                    icon: "\uf04b"
-                    size: 90
-                    color: mainQmlApp.themeColor
+                    width: 95; height: 95
                     anchors.centerIn: parent
-
-                }
-
-
-                AppIcon
-                {
-                    size: 30
-                    icon: "\uf00c"
-                    color: "white"
-                    anchors.centerIn: parent
+                    source: "qrc:/assets/images/icon-96.png"
+                    fillMode: Image.PreserveAspectFit
                 }
             }
 

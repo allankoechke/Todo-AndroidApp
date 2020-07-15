@@ -1,11 +1,106 @@
 import QtQuick 2.0
 import QtQuick.Layouts 1.3
 import QtQuick.Controls 2.5
+
 import "../components"
 
 Item
 {
     anchors.fill: parent
+
+    property int archivedTasks: 0
+    property int finishedTasks: 0
+
+    property int per: 0
+
+    function getFinishedTasks()
+    {
+        // returns finished tasks
+
+        var db =  mainQmlApp.getDb()
+
+        try
+        {
+            db.transaction(function(tx){
+                var response = tx.executeSql("SELECT id FROM \"Task\" WHERE finished='1'");
+                //console.log(response.rows.length)
+                finishedTasks = response.rows.length
+                return finishedTasks
+            });
+        }
+        catch (err)
+        {
+            console.log("ToDoPanel: ", err)
+            return 0;
+        }
+    }
+
+
+    function getArchivedTasks()
+    {
+        // returns number of archived tasks
+
+        var db =  mainQmlApp.getDb()
+
+        try
+        {
+            db.transaction(function(tx){
+                var response = tx.executeSql("SELECT id FROM \"Task\" WHERE archived='1'");
+
+                archivedTasks = response.rows.length
+
+                return archivedTasks
+            });
+        }
+        catch (err)
+        {
+            console.log("ToDoPanel: ", err)
+            return 0;
+        }
+    }
+
+    function getEfficiency()
+    {
+        // returns number of archived tasks
+
+        var db =  mainQmlApp.getDb()
+
+        try
+        {
+            db.transaction(function(tx){
+                //console.log("TODO Panel: Count starting ...")
+                var response = tx.executeSql("SELECT id FROM \"Task\" WHERE finished='1' AND start < ?", Qt.formatDateTime(new Date(), "yyyy-MM-ddThh:mm:ss:zzz"));
+
+                var finishedTasks = response.rows.length
+
+                response = tx.executeSql("SELECT id FROM \"Task\" WHERE start < ?", Qt.formatDateTime(new Date(), "yyyy-MM-ddThh:mm:ss:zzz"));
+
+                var allTasks = response.rows.length
+
+                //console.log(">> ", finishedTasks, allTasks)
+
+                per = Math.ceil(finishedTasks/allTasks) *100
+
+                //console.log(per)
+
+                //console.log("TODO Panel: Count ending ...")
+            });
+        }
+        catch (err)
+        {
+            console.log("ToDoPanel: ", err)
+            return 0;
+        }
+    }
+
+    function checkValues()
+    {
+        getFinishedTasks()
+        getArchivedTasks()
+        getEfficiency()
+    }
+
+    Component.onCompleted: checkValues()
 
     ColumnLayout
     {
@@ -65,7 +160,7 @@ Item
                 anchors.bottom: bottonRect.top
                 anchors.bottomMargin: 10
 
-                value: 70
+                value: per
 
                 ColumnLayout
                 {
@@ -123,7 +218,7 @@ Item
                             {
                                 color: "white"
                                 font.pixelSize: 15
-                                text: qsTr("16")
+                                text: mainQmlApp.workTaskCount+mainQmlApp.personalTaskCount+mainQmlApp.healthTaskCount+mainQmlApp.otherTaskCount
                                 Layout.alignment: Qt.AlignHCenter
                             }
                         }
@@ -155,7 +250,7 @@ Item
                             {
                                 color: "white"
                                 font.pixelSize: 15
-                                text: qsTr("19")
+                                text: finishedTasks
                                 Layout.alignment: Qt.AlignHCenter
                             }
                         }
@@ -187,7 +282,7 @@ Item
                             {
                                 color: "white"
                                 font.pixelSize: 15
-                                text: qsTr("5")
+                                text: archivedTasks
                                 Layout.alignment: Qt.AlignHCenter
                             }
                         }
@@ -205,11 +300,11 @@ Item
 
             ScrollView
             {
-               clip: true
-               width: parentitem.width
-               height: parentitem.height
-               ScrollBar.vertical.interactive: true
-               ScrollBar.vertical.policy: ScrollBar.AlwaysOff
+                clip: true
+                width: parentitem.width
+                height: parentitem.height
+                ScrollBar.vertical.interactive: true
+                ScrollBar.vertical.policy: ScrollBar.AlwaysOff
 
                 GridLayout
                 {
@@ -226,7 +321,7 @@ Item
                         Layout.row: 0
                         panelicon.icon: "\uf0b1"
                         paneltext{
-                            text: qsTr("5")
+                            text: mainQmlApp.workTaskCount.toString()
                             color: Qt.rgba(252/255,126/255,27/255,1)
                         }
                         paneltitle.text: qsTr("Work")
@@ -239,7 +334,7 @@ Item
                         Layout.row: 0
                         panelicon.icon: "\uf007"
                         paneltext{
-                            text: qsTr("7")
+                            text: mainQmlApp.personalTaskCount.toString()
                             color: Qt.rgba(144/255,92/255,217/255,1)
                         }
                         paneltitle.text: qsTr("Personal")
@@ -252,14 +347,27 @@ Item
                         Layout.row: 1
                         panelicon.icon: "\uf21e"
                         paneltext{
-                            text: qsTr("4")
+                            text: mainQmlApp.healthTaskCount.toString()
                             color: Qt.rgba(18/255,119/255,235/255,1)
                         }
                         paneltitle.text: qsTr("Health")
                     }
 
+                    TodoPanelWidget
+                    {
+                        color: Qt.rgba(0/255,128/255,128/255,.2)
+                        Layout.column: 1
+                        Layout.row: 1
+                        panelicon.icon: "\uf6f9"
+                        paneltext{
+                            text: mainQmlApp.otherTaskCount.toString()
+                            color: Qt.rgba(0/255,128/255,128/255,1)
+                        }
+                        paneltitle.text: qsTr("Others")
+                    }
 
-                    Rectangle
+
+                    /*Rectangle
                     {
                         id: addnew
                         color: "#fef1fa"
@@ -289,7 +397,7 @@ Item
                                 color: "black"
                             }
                         }
-                    }
+                    }*/
                 }
             }
         }

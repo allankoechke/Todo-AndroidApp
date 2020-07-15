@@ -92,7 +92,7 @@ Item
             TextBoxInput
             {
                 id: email
-                hintText: qsTr("Email")
+                hintText: qsTr("Email/Username")
             }
 
             TextBoxInput
@@ -142,7 +142,7 @@ Item
                         {
                             try
                             {
-                                var db = LocalStorage.openDatabaseSync("ToDoApplicationDB","1.0","Local storage for To Do App", 1000000)
+                                var db = mainQmlApp.getDb()
 
                                 db.transaction(
                                             function(tx)

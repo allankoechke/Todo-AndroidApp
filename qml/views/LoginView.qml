@@ -91,7 +91,7 @@ Item
             TextBoxInput
             {
                 id: email
-                hintText: qsTr("Email")
+                hintText: qsTr("Email/Username")
             }
 
             TextBoxInput
@@ -133,7 +133,7 @@ Item
                         if(email.textComponent.text.length < 5)
                         {
                             error.visible=true
-                            error.text=qsTr("Email field too short")
+                            error.text=qsTr("Email/username field too short")
                         }
 
                         else if(password.textComponent.text.length < 5)
@@ -146,7 +146,7 @@ Item
                         {
                             try
                             {
-                                var db = LocalStorage.openDatabaseSync("ToDoApplicationDB","1.0","Local storage for To Do App", 1000000)
+                                var db = mainQmlApp.getDb()
 
                                 var _email = email.textComponent.text
                                 var _pswd = password.textComponent.text

@@ -9,9 +9,118 @@ Item
     Layout.fillHeight: true
 
     property int currentNavIndex: 0
+    property alias titlebar: titlebar
+    property alias taskOptionsPopup: taskOptionsPopup
+    property alias newTaskPane: newTaskPane
 
-    Item
+    onCurrentNavIndexChanged: {
+        if(currentNavIndex===0)
+            countActivity()
+
+        if(currentNavIndex===1)
+            newTaskPane.resetAllFields()
+
+        if(currentNavIndex===2){
+            todaysTaskPane.refreshLoadedModel()
+        }
+    }
+
+    function countActivity()
     {
+        var db = mainQmlApp.getDb()
+
+        try{
+            db.transaction(
+                        function (tx)
+                        {
+                            var category = 0
+                            var response = tx.executeSql("SELECT id from \"Task\" WHERE category=?",
+                                                     category);
+                            mainQmlApp.workTaskCount = response.rows.length
+
+                            category = 1
+                            response = tx.executeSql("SELECT id from \"Task\" WHERE category=?",
+                                                     category);
+                            mainQmlApp.personalTaskCount = response.rows.length
+
+                            category = 2
+                            response = tx.executeSql("SELECT id from \"Task\" WHERE category=?",
+                                                     category);
+                            mainQmlApp.healthTaskCount = response.rows.length
+
+                            category = 3
+                            response = tx.executeSql("SELECT id from \"Task\" WHERE category=?",
+                                                     category);
+                            mainQmlApp.otherTaskCount = response.rows.length
+                        });
+        } catch (err){
+            console.log("ActivityView: ", err)
+        }
+    }
+
+    function setArchived(id)
+    {
+        var db = mainQmlApp.getDb()
+
+        try{
+            db.transaction(
+                        function (tx)
+                        {
+                            var response = tx.executeSql("UPDATE \"Task\" SET archived = ? WHERE id =?",
+                                                     [1,id]);
+
+                            todaysTaskPane.refreshLoadedModel()
+                            console.log("Archived")
+                            taskOptionsPopup.close()
+                        });
+        } catch (err){
+            console.log("ActivityView: Archived: ", err)
+        }
+    }
+
+    function setFinished(id)
+    {
+        var db = mainQmlApp.getDb()
+
+        try{
+            db.transaction(
+                        function (tx)
+                        {
+                            var response = tx.executeSql("UPDATE \"Task\" SET finished = ? WHERE id = ?",
+                                                     [1,id]);
+
+                            todaysTaskPane.refreshLoadedModel()
+                            console.log("Finished")
+                            taskOptionsPopup.close()
+                        });
+        } catch (err){
+            console.log("ActivityView: Finished: ", err)
+        }
+    }
+
+    function setDelete(id)
+    {
+        var db = mainQmlApp.getDb()
+
+        try{
+            db.transaction(
+                        function (tx)
+                        {
+                            var response = tx.executeSql("DELETE FROM \"Task\" WHERE id = ?",
+                                                     [1,id]);
+
+                            todaysTaskPane.refreshLoadedModel()
+                            console.log("Deleted")
+                            taskOptionsPopup.close()
+                        });
+        } catch (err){
+            console.log("ActivityView: Delete: ", err)
+        }
+    }
+
+    Component.onCompleted: countActivity()
+
+    Item{
         id: titlebar
         height: 50; width: parent.width
         anchors.top: parent.top
@@ -72,11 +181,13 @@ Item
 
         NewTaskPane
         {
+            id: newTaskPane
             visible: currentNavIndex===1
         }
 
         TodaysTaskPane
         {
+            id: todaysTaskPane
             visible: currentNavIndex===2
         }
     }
@@ -125,6 +236,81 @@ Item
                 isNavItemActive: currentNavIndex===2
                 onClicked: currentNavIndex=2
             }
+        }
+    }
+
+    Popup
+    {
+        id: taskOptionsPopup
+        x: mainQmlApp.width-width -30
+        y: taskOptionsPopupY  //200
+        width: 100
+        height: 155
+        modal: false; focus: true
+        closePolicy: Popup.CloseOnPressOutside
+
+        contentItem: Item {
+            anchors.fill: parent
+            anchors.margins: 0
+
+            ColumnLayout
+            {
+                anchors.fill: parent
+                spacing: 0
+                anchors.topMargin: 5
+                anchors.bottomMargin: 5
+
+                Rectangle
+                {
+                    color: "grey"; height: 1; Layout.fillWidth: true; opacity: 0.5
+                }
+
+                MenuButton
+                {
+                    menuText: qsTr("Finished")
+                    onClicked: { setFinished(currentListItemId) }
+                }
+                Rectangle
+                {
+                    color: "grey"; height: 1; Layout.fillWidth: true; opacity: 0.5
+                }
+
+                MenuButton
+                {
+                    menuText: qsTr("Archive")
+                    onClicked: { setArchived(currentListItemId) }
+                }
+                Rectangle
+                {
+                    color: "grey"; height: 1; Layout.fillWidth: true; opacity: 0.5
+                }
+
+                MenuButton
+                {
+                    menuText: qsTr("Delete")
+                    onClicked: { setDelete(currentListItemId) }
+                }
+                Rectangle
+                {
+                    color: "grey"; height: 1; Layout.fillWidth: true; opacity: 0.5
+                }
+
+                MenuButton
+                {
+                    visible: false
+                    menuText: qsTr("Edit")
+                    onClicked: {}
+                }
+
+                Rectangle
+                {
+                    visible: false
+                    color: "grey"; height: 1; Layout.fillWidth: true
+                }
+            }
+        }
+
+        onClosed: {
         }
     }
 }

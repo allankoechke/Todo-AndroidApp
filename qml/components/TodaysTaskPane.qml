@@ -9,6 +9,8 @@ Item
     anchors.fill: parent
 
     property int currentModelItemIndex: 0
+    property string modelXML: ""
+    property bool isEmpty: false
 
     function getNextDay(offset)
     {
@@ -18,6 +20,101 @@ Item
         var dd = Qt.formatDateTime(tomorrow, "dd")
 
         return dd;
+    }
+
+    function getNextDayDate(offset)
+    {
+        const today = new Date()
+        const tomorrow = new Date(today)
+        tomorrow.setDate(tomorrow.getDate() + offset)
+        var dt = Qt.formatDateTime(tomorrow, "yyyy-MM-dd")
+        //console.log("0: ", dt)
+
+        return dt;
+    }
+
+    function loadModelData(today)
+    {
+        var db = mainQmlApp.getDb()
+
+        myListModel.clear()
+
+        //var today = Qt.formatDateTime(new Date(), "yyyy-MM-dd")
+        today += "%"
+        //console.log("TodaysTaskPane-inline: ", today)
+
+        try
+        {
+            db.transaction(function (tx){
+                var response = tx.executeSql('SELECT id,category,title,start,stop,content,finished,archived FROM \"Task\" WHERE start LIKE ? AND archived = ? ORDER BY start DESC', [today, 0]);
+                // ,mainQmlApp.userEmail
+
+                for (var i = 0; i<response.rows.length; i++)
+                {
+                    var archived_ = response.rows[i].archived;
+                    var finished_ = response.rows[i].finished;
+                    var status__ = archived_ ===1? 2: finished_===1? 1: 0
+                    var begin_ = Qt.formatDateTime(response.rows[i].start, "hh:mm AP")
+                    var end_ = Qt.formatDateTime(response.rows[i].stop, "hh:mm AP")
+
+                    myListModel.append({
+                                           "id_": response.rows[i].id,
+                                           "begin" : begin_,
+                                           "end" : end_,
+                                           "cat_" : response.rows[i].category,
+                                           "topic" : response.rows[i].title,
+                                           "content" : response.rows[i].content,
+                                           "status" : status__})
+                }
+
+                if(response.rows.length>0)
+                    isEmpty=false
+                else
+                    isEmpty=true
+
+            });
+
+        } catch (err) {
+            console.log("TodatsTaskPane: ", err)
+        }
+    }
+
+    ListModel
+    {
+        id: myListModel
+    }
+
+    function refreshLoadedModel()
+    {
+        loadModelData(getNextDayDate(currentModelItemIndex))
+    }
+
+    Component.onCompleted: loadModelData(getNextDayDate(currentModelItemIndex))
+
+    onCurrentModelItemIndexChanged: loadModelData(getNextDayDate(currentModelItemIndex))
+
+    Component
+    {
+        id: itemDelegateComponent
+
+        TaskModel
+        {
+            taskstarttime: begin
+            taskendtime: end
+            taskcategory: cat_
+            tasktitle: topic
+            tasktext: content
+            taskStatus: status
+            currentId: id_
+
+            onClicked: {
+                var globalCoord = mouseArea.mapToItem(mainQmlApp.actView, 0, 0)
+                taskOptionsPopupX = globalCoord.x
+                taskOptionsPopupY = globalCoord.y
+                mainQmlApp.actView.taskOptionsPopup.open()
+                mainQmlApp.currentListItemId = currentId
+            }
+        }
     }
 
     Item {
@@ -40,7 +137,7 @@ Item
 
                 Repeater
                 {
-                    model: ["Today", "Tomorrow", getNextDay(2), getNextDay(3), getNextDay(4), getNextDay(5), getNextDay(6), getNextDay(7), getNextDay(8), getNextDay(9)]
+                    model: ["Today", "Tomorrow", getNextDay(2), getNextDay(3), getNextDay(4), getNextDay(5), getNextDay(6), getNextDay(7), getNextDay(8), getNextDay(9), getNextDay(10), getNextDay(11), getNextDay(12), getNextDay(13), getNextDay(14), getNextDay(15), getNextDay(16), getNextDay(17)]
 
                     Item
                     {
@@ -87,9 +184,12 @@ Item
 
         ScrollView
         {
+            id: scroll_
+            visible: !isEmpty
             ScrollBar.vertical.policy: ScrollBar.AlwaysOff
             ScrollBar.vertical.interactive: true
             Layout.fillWidth: true
+            Layout.minimumHeight: 300
             Layout.fillHeight: true
             spacing: 3
             clip: true
@@ -98,48 +198,51 @@ Item
             {
                 spacing: 5
                 width: parent.width
+                height: parent.height
+                anchors.topMargin: 5
 
-                TaskModel
+                ListView
                 {
-                    taskcategorycolor: "#fc7e21"
-                    taskstarttime: "7.30 PM"
-                    taskendtime: "5:30 PM"
-                    taskcategory: "Work"
-                    tasktitle: "Project meeting"
-                    tasktext: qsTr("ProgressBar also supports a special indeterminate mode, which is useful, for example, when unable to determine the size of the item being downloaded, or if the download progress gets interrupted due to a network disconnection.")
-                }
-
-                TaskModel
-                {
-                    taskcategorycolor: "#1277eb"
-                    taskstarttime: "1.00 PM"
-                    taskendtime: "1:30 PM"
-                    taskcategory: "Health"
-                    tasktitle: "Doctor appointment"
-                    tasktext: qsTr("When unable to determine the size of the item being downloaded, or if the download progress gets interrupted due to a network disconnection.")
-                }
-
-                TaskModel
-                {
-                    taskcategorycolor: "#fc7e21"
-                    taskstarttime: "4.30 PM"
-                    taskendtime: "4.50 PM"
-                    taskcategory: "Work"
-                    tasktitle: "Give project update to client"
-                    tasktext: qsTr(" Which is useful when unable to determine the size of the item being downloaded, or if the download progress gets interrupted due to a network disconnection.")
-                }
-
-                TaskModel
-                {
-                    taskcategorycolor: "#8f5cdd"
-                    taskstarttime: "7.00 AM"
-                    taskendtime: "08:30 AM"
-                    taskcategory: "Personal"
-                    tasktitle: "Continue with online course"
-                    tasktext: qsTr("ProgressBar also supports a special indeterminate mode, which is useful, for example, when unable to determine the size of the item being downloaded, or if the download progress gets interrupted due to a network disconnection.")
+                    id: listElementModel_
+                    spacing: 5
+                    Layout.preferredWidth: scroll_.width
+                    Layout.fillHeight: true
+                    delegate: itemDelegateComponent
+                    model: myListModel
                 }
             }
         }
     }
 
+    Item
+    {
+        anchors.top: topdateselector.bottom
+        anchors.bottom: parent.bottom
+        anchors.topMargin: 6
+        anchors.left: parent.left
+        width: parent.width
+        visible: isEmpty
+
+        ColumnLayout
+        {
+            anchors.centerIn:  parent
+            spacing: 20
+
+            AppIcon
+            {
+                color: "grey"
+                icon: "\uf49e"
+                size: 20
+                Layout.alignment: Qt.AlignHCenter
+            }
+
+            Text
+            {
+                text: qsTr("Oops! Nothing here")
+                color: "grey"
+                font.pixelSize: 18
+            }
+        }
+    }
 }
+
